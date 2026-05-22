@@ -553,6 +553,14 @@ function showLoadingError(msg) {
     </div>`;
 }
 
+// Captura errors globals i els mostra a la pantalla
+window.onerror = function(msg, src, line, col, err) {
+  showLoadingError('Error JS: ' + msg + ' (línia ' + line + ')');
+};
+window.addEventListener('unhandledrejection', function(e) {
+  showLoadingError('Error async: ' + (e.reason?.message || e.reason?.code || JSON.stringify(e.reason)));
+});
+
 async function carregarDades() {
   try {
     setLoadingMsg('Connectant a la base de dades...');
@@ -572,15 +580,7 @@ async function carregarDades() {
       renderMentor();
     }
   } catch(e) {
-    let msg = 'Error desconegut.';
-    if (e.code === 'permission-denied') {
-      msg = `Firestore ha denegat l'accés (permission-denied). Cal configurar les Security Rules a Firebase Console → Firestore → Rules amb:<br><br><code style="background:#f3f4f6;padding:8px;border-radius:6px;display:block;font-size:11px;text-align:left;">rules_version = '2';<br>service cloud.firestore {<br>&nbsp;match /databases/{database}/documents {<br>&nbsp;&nbsp;match /usuaris/{uid}/{document=**} {<br>&nbsp;&nbsp;&nbsp;allow read, write: if request.auth != null && request.auth.uid == uid;<br>&nbsp;&nbsp;}<br>&nbsp;}<br>}</code>`;
-    } else if (e.code === 'unavailable') {
-      msg = 'Firestore no disponible. Comprova la connexió a internet.';
-    } else {
-      msg = `Error: ${e.code || e.message}`;
-    }
-    showLoadingError(msg);
+    showLoadingError('Codi: ' + (e.code || '?') + '<br>Missatge: ' + (e.message || JSON.stringify(e)));
   }
 }
 
